@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "Mistral AI Native",
+    "slug": "mistral-native-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.mistralnative.mobile"
+    },
+    "android": {
+      "package": "com.mistralnative.mobile",
+      "permissions": ["READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE"]
+    }
+  }
+}
