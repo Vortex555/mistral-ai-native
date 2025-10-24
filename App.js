@@ -29,6 +29,7 @@ export default function App() {
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [modelLoaded, setModelLoaded] = useState(false);
+  const [modelInitialized, setModelInitialized] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [downloadSpeed, setDownloadSpeed] = useState(0);
@@ -61,17 +62,44 @@ export default function App() {
       const modelPath = `${FileSystem.documentDirectory}mistral-7b-instruct-q4.gguf`;
       const fileInfo = await FileSystem.getInfoAsync(modelPath);
       
-      // If model file exists but not loaded in memory, load it silently
-      if (fileInfo.exists && !aiService.current.llamaContext) {
-        console.log('Model file found, initializing in background...');
+      // Check if we should auto-initialize (if user was in offline mode)
+      const savedMode = await AsyncStorage.getItem('ai_mode');
+      
+      // If model file exists and user was in offline mode, load it
+      if (fileInfo.exists && savedMode === 'offline' && !aiService.current.llamaContext) {
+        console.log('Model file found, initializing for offline mode...');
+        setIsInitializing(true);
+        
         const result = await aiService.current.loadLocalModel(modelPath);
+        
         if (result.success) {
           console.log('Model auto-initialized successfully');
+          setModelInitialized(true);
+        } else {
+          console.log('Model initialization failed:', result.error);
+          setModelInitialized(false);
+          // Switch back to online mode if initialization failed
+          setAiMode('online');
+          await AsyncStorage.setItem('ai_mode', 'online');
         }
+        
+        setIsInitializing(false);
+      } else if (!fileInfo.exists && savedMode === 'offline') {
+        // Model file doesn't exist but user was in offline mode
+        // Switch to online mode
+        setAiMode('online');
+        await AsyncStorage.setItem('ai_mode', 'online');
+      } else {
+        // Either in online mode or model already initialized
+        setModelInitialized(aiService.current.llamaContext !== null);
       }
     } catch (error) {
-      console.log('Auto-initialize skipped:', error.message);
-      // Silently fail - user can manually initialize later
+      console.log('Auto-initialize error:', error.message);
+      setIsInitializing(false);
+      setModelInitialized(false);
+      // Switch to online mode on error
+      setAiMode('online');
+      await AsyncStorage.setItem('ai_mode', 'online');
     }
   };
 
@@ -410,6 +438,7 @@ export default function App() {
       
       if (result.success) {
         setModelLoaded(true);
+        setModelInitialized(true);
         setShowWelcome(false);
         Alert.alert('Success', 'Model loaded successfully! You can now use offline AI.');
       } else {
@@ -417,6 +446,7 @@ export default function App() {
       }
     } catch (error) {
       console.error('Model initialization error:', error);
+      setModelInitialized(false);
       Alert.alert(
         'Error Loading Model', 
         `${error.message}\n\nTry:\n• Restarting the app\n• Re-downloading the model\n• Closing other apps to free memory`
@@ -428,6 +458,25 @@ export default function App() {
 
   const sendMessage = async () => {
     if (!inputText.trim() || isLoading) return;
+
+    // Check if in offline mode but model not initialized
+    if (aiMode === 'offline' && !modelInitialized) {
+      Alert.alert(
+        'Model Not Ready',
+        'The offline model is still loading. Please wait a moment or switch to online mode.',
+        [
+          { text: 'Wait', style: 'cancel' },
+          { 
+            text: 'Use Online', 
+            onPress: () => {
+              setAiMode('online');
+              saveSettings('online', apiKey);
+            }
+          }
+        ]
+      );
+      return;
+    }
 
     const userMessage = {
       id: Date.now().toString(),
@@ -699,6 +748,23 @@ export default function App() {
     <View style={styles.container}>
       <StatusBar style="light" hidden={true} />
       
+      {/* Model Initialization Loading Screen */}
+      {isInitializing && (
+        <View style={styles.initializingOverlay}>
+          <View style={styles.initializingContent}>
+            <ActivityIndicator size="large" color="#4CAF50" />
+            <Text style={styles.initializingTitle}>Loading AI Model</Text>
+            <Text style={styles.initializingText}>
+              Initializing Mistral 7B into memory...
+            </Text>
+            <Text style={styles.initializingSubtext}>
+              This may take 30-60 seconds{'\n'}
+              Please keep the app open
+            </Text>
+          </View>
+        </View>
+      )}
+      
       <View style={styles.headerWrapper}>
         <View style={styles.header}>
           <View style={styles.headerLeft}>
@@ -759,16 +825,22 @@ export default function App() {
             style={styles.input}
             value={inputText}
             onChangeText={setInputText}
-            placeholder="Type your message..."
+            placeholder={
+              isInitializing 
+                ? "Loading AI model..." 
+                : aiMode === 'offline' && !modelInitialized 
+                  ? "Model loading..."
+                  : "Type your message..."
+            }
             placeholderTextColor="#666"
             multiline
             maxLength={1000}
-            editable={!isLoading}
+            editable={!isLoading && !isInitializing && (aiMode === 'online' || modelInitialized)}
           />
           <TouchableOpacity
-            style={[styles.sendButton, (!inputText.trim() || isLoading) && styles.sendButtonDisabled]}
+            style={[styles.sendButton, (!inputText.trim() || isLoading || isInitializing || (aiMode === 'offline' && !modelInitialized)) && styles.sendButtonDisabled]}
             onPress={sendMessage}
-            disabled={!inputText.trim() || isLoading}
+            disabled={!inputText.trim() || isLoading || isInitializing || (aiMode === 'offline' && !modelInitialized)}
           >
             <Ionicons
               name={isLoading ? 'hourglass-outline' : 'send'}
@@ -1792,6 +1864,40 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
     fontStyle: 'italic',
+  },
+  initializingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+    zIndex: 1000,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  initializingContent: {
+    alignItems: 'center',
+    padding: 40,
+  },
+  initializingTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+    marginTop: 20,
+    marginBottom: 12,
+  },
+  initializingText: {
+    fontSize: 16,
+    color: '#fff',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  initializingSubtext: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });
 
