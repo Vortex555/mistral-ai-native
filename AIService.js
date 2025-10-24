@@ -42,54 +42,73 @@ export class AIService {
         content: 'You are a helpful AI assistant. Be concise and friendly.'
       });
 
-      // Using Groq API (free tier available)
-      const response = await axios.post(
-        'https://api.groq.com/openai/v1/chat/completions',
-        {
+      // Using Groq API with streaming
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey || 'gsk_demo_key'}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
           messages: formattedMessages,
           temperature: 0.7,
           max_tokens: 1024,
-          stream: false
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${this.apiKey || 'gsk_demo_key'}`,
-            'Content-Type': 'application/json'
-          },
-          timeout: 30000
-        }
-      );
+          stream: true // Enable streaming
+        })
+      });
 
-      if (response.data?.choices?.[0]?.message?.content) {
-        return {
-          success: true,
-          text: response.data.choices[0].message.content,
-          mode: 'online'
-        };
-      } else {
-        throw new Error('Invalid response format');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || `HTTP ${response.status}`);
       }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let fullText = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') continue;
+            
+            try {
+              const parsed = JSON.parse(data);
+              const content = parsed.choices?.[0]?.delta?.content;
+              if (content) {
+                fullText += content;
+                if (onChunk) {
+                  onChunk(content);
+                }
+              }
+            } catch (e) {
+              // Skip parsing errors
+            }
+          }
+        }
+      }
+
+      return {
+        success: true,
+        text: fullText,
+        mode: 'online'
+      };
 
     } catch (error) {
       console.error('Online AI error:', error);
-      console.error('Error details:', error.response?.data);
-      console.error('Status:', error.response?.status);
       
       // Fallback to demo mode if API fails
-      if (error.response?.status === 401) {
+      if (error.message.includes('401')) {
         return {
           success: false,
           error: 'Invalid API key. Please check your Groq API key in settings.',
-          text: this.getDemoResponse(messages),
-          mode: 'demo'
-        };
-      }
-      
-      if (error.response?.status === 400) {
-        return {
-          success: false,
-          error: `Bad request: ${error.response?.data?.error?.message || 'Check your API key and try again.'}`,
           text: this.getDemoResponse(messages),
           mode: 'demo'
         };

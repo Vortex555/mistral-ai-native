@@ -441,21 +441,52 @@ export default function App() {
     setInputText('');
     setIsLoading(true);
 
-    try {
-      // Use AI Service to generate response
-      const result = await aiService.current.generateResponse(updatedMessages);
-      
-      const aiMessage = {
-        id: (Date.now() + 1).toString(),
-        text: result.text,
-        sender: 'ai',
-        timestamp: new Date().toLocaleTimeString(),
-        mode: result.mode, // Track which mode generated this
-      };
+    // Create a placeholder AI message for streaming
+    const aiMessageId = (Date.now() + 1).toString();
+    const aiMessage = {
+      id: aiMessageId,
+      text: '',
+      sender: 'ai',
+      timestamp: new Date().toLocaleTimeString(),
+      mode: aiMode,
+    };
 
-      const finalMessages = [...updatedMessages, aiMessage];
-      setMessages(finalMessages);
-      await saveMessages(finalMessages);
+    // Add empty AI message immediately
+    const messagesWithPlaceholder = [...updatedMessages, aiMessage];
+    setMessages(messagesWithPlaceholder);
+
+    try {
+      // Use AI Service to generate response with streaming
+      const result = await aiService.current.generateResponse(
+        updatedMessages,
+        (chunk) => {
+          // Update the AI message in real-time as chunks arrive
+          setMessages(prev => {
+            const newMessages = [...prev];
+            const lastMsg = newMessages[newMessages.length - 1];
+            if (lastMsg.id === aiMessageId) {
+              lastMsg.text += chunk;
+            }
+            return newMessages;
+          });
+        }
+      );
+      
+      // Update with final text (in case streaming didn't work)
+      setMessages(prev => {
+        const newMessages = [...prev];
+        const lastMsg = newMessages[newMessages.length - 1];
+        if (lastMsg.id === aiMessageId) {
+          lastMsg.text = result.text;
+          lastMsg.mode = result.mode;
+        }
+        return newMessages;
+      });
+
+      // Save final messages
+      await saveMessages(messagesWithPlaceholder.map(msg => 
+        msg.id === aiMessageId ? { ...msg, text: result.text, mode: result.mode } : msg
+      ));
       
       // Show warning if in demo mode
       if (result.mode === 'demo' || result.mode === 'offline-demo') {
@@ -752,11 +783,11 @@ export default function App() {
       <Modal
         visible={showSettings}
         animationType="slide"
-        transparent={true}
+        transparent={false}
         onRequestClose={() => setShowSettings(false)}
       >
-        <SafeAreaView style={styles.modalOverlay} edges={['top', 'bottom']}>
-          <View style={styles.settingsModal}>
+        <View style={styles.settingsModalContainer}>
+          <SafeAreaView style={styles.settingsModal} edges={['top', 'bottom']}>
             <View style={styles.settingsHeader}>
               <Text style={styles.settingsTitle}>Settings</Text>
               <TouchableOpacity onPress={() => setShowSettings(false)}>
@@ -951,8 +982,8 @@ export default function App() {
                 </Text>
               </View>
             </ScrollView>
-          </View>
-        </SafeAreaView>
+          </SafeAreaView>
+        </View>
       </Modal>
 
       {/* Chat History Modal */}
@@ -1422,12 +1453,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.95)',
     justifyContent: 'flex-end',
   },
-  settingsModal: {
-    backgroundColor: '#1a1a1a',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    height: '90%',
+  settingsModalContainer: {
     flex: 1,
+    backgroundColor: '#000',
+  },
+  settingsModal: {
+    flex: 1,
+    backgroundColor: '#1a1a1a',
   },
   settingsHeader: {
     flexDirection: 'row',
