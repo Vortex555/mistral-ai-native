@@ -1,20 +1,20 @@
-# Mistral AI Native Mobile - 100% On-Device
+# Dual AI Native - Hybrid AI Chatbot
 
-A fully native mobile app that runs Mistral 7B AI **completely on your phone** - no internet or PC required!
+A dual-mode mobile AI app with **online** (Llama 3.3 70B via Groq API) and **offline** (Mistral 7B Instruct v0.2 on-device) capabilities.
 
 ## 🎯 Key Features
 
-✅ **100% On-Device** - Model runs entirely on your phone
-✅ **No Internet Required** - Works completely offline after setup
-✅ **Private** - All data stays on your device
-✅ **No PC Needed** - Standalone mobile application
-✅ **Fast** - Optimized for mobile hardware
+✅ **Dual AI Modes** - Switch between cloud and local AI
+✅ **Online Mode** - Llama 3.3 70B Versatile (via free Groq API)
+✅ **Offline Mode** - Mistral 7B Instruct v0.2 runs entirely on your phone
+✅ **Private** - Offline data stays on your device
+✅ **Fast** - Cloud AI for speed, local AI for privacy
 
 ## 📱 Requirements
 
 ### Device Requirements
-- **Storage**: 6GB+ free space (4GB for model)
-- **RAM**: 4GB+ recommended (6GB+ ideal)
+- **Storage**: 6GB+ free space (4GB for offline model)
+- **RAM**: 4GB+ recommended (6GB+ ideal for offline mode)
 - **Processor**: Modern ARM processor (2020+ devices)
 - **OS**: iOS 14+ or Android 8+
 
@@ -62,17 +62,20 @@ eas build --platform android --profile production
 eas build --platform ios --profile production
 ```
 
-## 📥 Setting Up the Model
+## 📥 AI Models
 
-### Step 1: Download Model
+### Online Mode: Llama 3.3 70B Versatile
+- **Provider**: Groq API (free tier available)
+- **Speed**: Very fast (cloud-based)
+- **Requirements**: Internet connection + API key
+- **Get API key**: https://groq.com
 
+### Offline Mode: Mistral 7B Instruct v0.2
 The app uses a quantized version of Mistral 7B (Q4_K_M) which is ~4GB:
 
 **Download from Hugging Face:**
 - Go to: https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF
 - Download: `mistral-7b-instruct-v0.2.Q4_K_M.gguf`
-
-### Step 2: Transfer Model to Phone
 
 **Android (using ADB):**
 ```bash
@@ -96,30 +99,46 @@ Use iTunes File Sharing or the Files app to transfer the model.
 
 ## 🛠 Technical Details
 
-### Architecture
+### Architecture (Dual Mode)
 
+**Online Mode:**
+```
+React Native App → Groq API → Llama 3.3 70B → Response
+```
+
+**Offline Mode:**
 ```
 React Native App
     ↓
-React-Native-Llama Bridge
+llama.rn Bridge
     ↓
 llama.cpp (C++)
     ↓
-Mistral 7B Model (GGUF format)
+Mistral 7B Instruct v0.2 (GGUF format)
     ↓
-Your Phone's CPU/GPU
+Your Phone's CPU
 ```
 
 ### How It Works
 
+**Online Mode:**
+- Uses Groq's ultra-fast API
+- Runs Llama 3.3 70B on their infrastructure  
+- Requires internet but very fast responses
+
+**Offline Mode:**
 1. **llama.cpp**: Efficient C++ implementation for running LLMs
 2. **GGUF Format**: Optimized quantized model format (Q4 = 4-bit quantization)
-3. **Native Modules**: React Native bridges to C++ for performance
+3. **llama.rn**: React Native bridge to llama.cpp
 4. **On-Device Inference**: Uses ARM NEON instructions for acceleration
 
 ### Performance
 
-**Expected Generation Speed:**
+**Online Mode (Llama 3.3 70B):**
+- Speed: Near-instant responses (cloud-based)
+- Requires: Internet connection
+
+**Offline Mode (Mistral 7B Instruct v0.2):**
 - Flagship phones (2023+): 10-20 tokens/second
 - Mid-range phones (2021-2022): 5-10 tokens/second
 - Older phones: 2-5 tokens/second

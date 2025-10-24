@@ -131,7 +131,7 @@ export default function App() {
 
     Alert.alert(
       'Download Model',
-      `This will download Mistral 7B (Q4 quantized, ~4GB).\n\nAvailable space: ${modelDownloader.current.formatBytes(storageCheck.available)}\n\nMake sure you have a stable WiFi connection. The download may take 10-30 minutes.`,
+      `This will download Mistral 7B Instruct v0.2 (Q4 quantized, ~4GB).\n\nAvailable space: ${modelDownloader.current.formatBytes(storageCheck.available)}\n\nMake sure you have a stable WiFi connection. The download may take 10-30 minutes.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -372,7 +372,7 @@ export default function App() {
         <StatusBar style="light" hidden={true} />
         <View style={styles.welcomeContainer}>
           <Ionicons name="phone-portrait-outline" size={80} color="#007AFF" />
-          <Text style={styles.welcomeTitle}>Mistral AI Native</Text>
+          <Text style={styles.welcomeTitle}>Dual AI Native</Text>
           <Text style={styles.welcomeSubtitle}>
             Run AI completely on your phone
           </Text>
@@ -483,7 +483,7 @@ export default function App() {
             style={styles.infoButton}
             onPress={() => Alert.alert(
               'About',
-              'This app runs Mistral 7B AI model directly on your phone using llama.cpp. All processing happens locally - no data is sent to external servers.\n\nNote: This is a demonstration. Full implementation requires building native modules and integrating llama.cpp.'
+              'This app supports dual AI modes:\n\n• Online: Llama 3.3 70B (via Groq API)\n• Offline: Mistral 7B Instruct v0.2 (local on-device)\n\nOffline mode runs entirely on your phone using llama.cpp - no data sent to external servers.'
             )}
           >
             <Text style={styles.infoButtonText}>Learn More</Text>
@@ -501,7 +501,7 @@ export default function App() {
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <Ionicons name="phone-portrait" size={20} color="#4CAF50" />
-            <Text style={styles.headerTitle}>Mistral AI</Text>
+            <Text style={styles.headerTitle}>Dual AI</Text>
             <View style={[styles.modeBadge, { backgroundColor: aiMode === 'online' ? '#2196F3' : '#4CAF50' }]}>
               <Text style={styles.modeText}>{aiMode === 'online' ? 'ONLINE' : 'OFFLINE'}</Text>
             </View>
@@ -702,7 +702,7 @@ export default function App() {
                   • Instant responses{'\n\n'}
                   
                   <Text style={{ fontWeight: 'bold', color: '#4CAF50' }}>Offline Mode:</Text>{'\n'}
-                  • Runs Mistral 7B locally{'\n'}
+                  • Runs Mistral 7B Instruct v0.2 locally{'\n'}
                   • No internet needed{'\n'}
                   • Complete privacy{'\n'}
                   • Requires model download (4.08 GB){'\n'}

@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Mistral AI Native",
-    "slug": "mistral-native-mobile",
+    "name": "Dual AI Native",
+    "slug": "dual-native-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
@@ -10,13 +10,13 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.mistralnative.mobile",
+      "bundleIdentifier": "com.dualnative.mobile",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
-      "package": "com.mistralnative.mobile",
+      "package": "com.dualnative.mobile",
       "permissions": [
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE"
