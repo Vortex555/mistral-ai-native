@@ -48,7 +48,27 @@ export default function App() {
     checkModelStatus();
     loadMessages();
     loadSettings();
+    autoInitializeModel();
   }, []);
+
+  const autoInitializeModel = async () => {
+    try {
+      const modelPath = `${FileSystem.documentDirectory}mistral-7b-instruct-q4.gguf`;
+      const fileInfo = await FileSystem.getInfoAsync(modelPath);
+      
+      // If model file exists but not loaded in memory, load it silently
+      if (fileInfo.exists && !aiService.current.llamaContext) {
+        console.log('Model file found, initializing in background...');
+        const result = await aiService.current.loadLocalModel(modelPath);
+        if (result.success) {
+          console.log('Model auto-initialized successfully');
+        }
+      }
+    } catch (error) {
+      console.log('Auto-initialize skipped:', error.message);
+      // Silently fail - user can manually initialize later
+    }
+  };
 
   const checkModelStatus = async () => {
     try {
@@ -618,11 +638,33 @@ export default function App() {
 
                 <TouchableOpacity
                   style={[styles.modeOption, aiMode === 'offline' && styles.modeOptionActive]}
-                  onPress={() => {
+                  onPress={async () => {
                     if (!modelLoaded) {
                       Alert.alert('Model Not Downloaded', 'Please download the model first to use offline mode.');
                       return;
                     }
+                    
+                    // Check if model is loaded in memory
+                    if (!aiService.current.llamaContext) {
+                      // Model file exists but not loaded into memory
+                      Alert.alert(
+                        'Initialize Model',
+                        'The model file is downloaded but needs to be loaded into memory. This may take 30-60 seconds.',
+                        [
+                          { text: 'Cancel', style: 'cancel' },
+                          {
+                            text: 'Initialize',
+                            onPress: async () => {
+                              await initializeModel();
+                              setAiMode('offline');
+                              saveSettings('offline', apiKey);
+                            }
+                          }
+                        ]
+                      );
+                      return;
+                    }
+                    
                     setAiMode('offline');
                     saveSettings('offline', apiKey);
                   }}
