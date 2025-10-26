@@ -10,8 +10,8 @@ export class ModelDownloader {
 
   // Alternative download URLs (in case primary fails)
   static MODEL_URLS = {
-    primary: 'https://huggingface.co/cognitivecomputations/dolphin-2.9.3-llama-3.1-8b-gguf/resolve/main/dolphin-2.9.3-llama-3.1-8b-Q4_K_M.gguf',
-    mirror1: 'https://huggingface.co/cognitivecomputations/dolphin-2.9.3-llama-3.1-8b-gguf/resolve/main/dolphin-2.9.3-llama-3.1-8b-Q4_K_M.gguf',
+    primary: 'https://huggingface.co/cognitivecomputations/dolphin-2.9.3-llama-3.1-8b-gguf/resolve/main/dolphin-2.9.3-llama-3.1-8b.Q4_K_M.gguf',
+    mirror1: 'https://huggingface.co/cognitivecomputations/dolphin-2.9.3-llama-3.1-8b-gguf/resolve/main/dolphin-2.9.3-llama-3.1-8b.Q4_K_M.gguf',
     // Add more mirrors as needed
   };
 
