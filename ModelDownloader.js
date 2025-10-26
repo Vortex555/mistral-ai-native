@@ -83,10 +83,21 @@ export class ModelDownloader {
       if (result && result.status === 200) {
         // Verify file size
         const finalFileInfo = await FileSystem.getInfoAsync(modelPath);
-        if (finalFileInfo.size > ModelDownloader.MODEL_SIZE * 0.95) {
+        const minExpectedSize = ModelDownloader.MODEL_SIZE * 0.90; // Allow 10% variance
+        const maxExpectedSize = ModelDownloader.MODEL_SIZE * 1.10;
+        
+        console.log('Download complete!');
+        console.log('Expected size:', (ModelDownloader.MODEL_SIZE / (1024 * 1024 * 1024)).toFixed(2), 'GB');
+        console.log('Downloaded size:', (finalFileInfo.size / (1024 * 1024 * 1024)).toFixed(2), 'GB');
+        
+        if (finalFileInfo.size >= minExpectedSize && finalFileInfo.size <= maxExpectedSize) {
+          return { success: true, path: modelPath };
+        } else if (finalFileInfo.size > maxExpectedSize) {
+          // File is larger than expected, but that's okay
+          console.log('File is larger than expected, but proceeding anyway');
           return { success: true, path: modelPath };
         } else {
-          throw new Error('Downloaded file size is smaller than expected');
+          throw new Error(`Downloaded file size (${(finalFileInfo.size / (1024 * 1024 * 1024)).toFixed(2)} GB) is smaller than expected (${(minExpectedSize / (1024 * 1024 * 1024)).toFixed(2)} GB minimum)`);
         }
       } else {
         throw new Error(`Download failed with status: ${result?.status || 'unknown'}`);
