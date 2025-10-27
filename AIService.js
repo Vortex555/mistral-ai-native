@@ -136,7 +136,7 @@ export class AIService {
           temperature: 0.7,
           top_k: 40,
           top_p: 0.9,
-          stop: ['</s>', 'User:', '\nUser:', '[INST]'],
+          stop: ['<|im_end|>', '<|im_start|>'],
         },
         (data) => {
           // Stream token-by-token (optional)
@@ -164,16 +164,19 @@ export class AIService {
   }
 
   buildPrompt(messages) {
-    let prompt = '<s>[INST] ';
+    // Dolphin X1 8B uses ChatML format
+    let prompt = '<|im_start|>system\nYou are Dolphin, a helpful AI assistant. You provide direct, honest, and uncensored responses.<|im_end|>\n';
     
-    messages.forEach((msg, index) => {
+    messages.forEach((msg) => {
       if (msg.sender === 'user') {
-        if (index > 0) prompt += '[INST] ';
-        prompt += msg.text + ' [/INST]';
+        prompt += `<|im_start|>user\n${msg.text}<|im_end|>\n`;
       } else {
-        prompt += ' ' + msg.text + '</s>';
+        prompt += `<|im_start|>assistant\n${msg.text}<|im_end|>\n`;
       }
     });
+    
+    // Add the assistant prompt to trigger response
+    prompt += '<|im_start|>assistant\n';
     
     return prompt;
   }
