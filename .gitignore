@@ -24,6 +24,7 @@ yarn-error.log
 .DS_Store
 
 # iOS
+ios/
 ios/Pods/
 ios/build/
 *.pbxuser
