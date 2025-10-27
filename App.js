@@ -59,7 +59,7 @@ export default function App() {
 
   const autoInitializeModel = async () => {
     try {
-      const modelPath = `${FileSystem.documentDirectory}dolphin-x1-8b-q8.gguf`;
+      const modelPath = `${FileSystem.documentDirectory}dolphin-x1-8b-q4.gguf`;
       const fileInfo = await FileSystem.getInfoAsync(modelPath);
       
       // Check if we should auto-initialize (if user was in offline mode)
@@ -105,7 +105,7 @@ export default function App() {
 
   const checkModelStatus = async () => {
     try {
-      const modelPath = `${FileSystem.documentDirectory}dolphin-x1-8b-q8.gguf`;
+      const modelPath = `${FileSystem.documentDirectory}dolphin-x1-8b-q4.gguf`;
       const fileInfo = await FileSystem.getInfoAsync(modelPath);
       setModelLoaded(fileInfo.exists);
       // Removed: No longer auto-hide welcome screen
@@ -275,7 +275,7 @@ export default function App() {
           style: 'destructive',
           onPress: async () => {
             try {
-              const modelPath = `${FileSystem.documentDirectory}dolphin-x1-8b-q8.gguf`;
+              const modelPath = `${FileSystem.documentDirectory}dolphin-x1-8b-q4.gguf`;
               await FileSystem.deleteAsync(modelPath, { idempotent: true });
               
               // Release model from memory if loaded
@@ -431,7 +431,7 @@ export default function App() {
   const initializeModel = async () => {
     setIsInitializing(true);
     try {
-      const modelPath = `${FileSystem.documentDirectory}dolphin-x1-8b-q8.gguf`;
+      const modelPath = `${FileSystem.documentDirectory}dolphin-x1-8b-q4.gguf`;
       
       // Load the model using AIService
       const result = await aiService.current.loadLocalModel(modelPath);
@@ -979,7 +979,7 @@ export default function App() {
                 </View>
                 <View style={styles.statusRow}>
                   <Text style={styles.statusLabel}>Model:</Text>
-                  <Text style={styles.statusValue}>Dolphin X1 8B (Q8)</Text>
+                  <Text style={styles.statusValue}>Dolphin X1 8B (Q4)</Text>
                 </View>
                 <View style={styles.statusRow}>
                   <Text style={styles.statusLabel}>Size:</Text>

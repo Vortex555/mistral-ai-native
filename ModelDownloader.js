@@ -10,12 +10,12 @@ export class ModelDownloader {
 
   // Alternative download URLs (in case primary fails)
   static MODEL_URLS = {
-    primary: 'https://huggingface.co/dphn/Dolphin-X1-8B-GGUF/resolve/main/Dolphin-X1-8B-Q8_0.gguf',
-    mirror1: 'https://huggingface.co/dphn/Dolphin-X1-8B-GGUF/resolve/main/Dolphin-X1-8B-Q8_0.gguf',
+    primary: 'https://huggingface.co/dphn/Dolphin-X1-8B-GGUF/resolve/main/Dolphin-X1-8B-Q4_K_M.gguf',
+    mirror1: 'https://huggingface.co/dphn/Dolphin-X1-8B-GGUF/resolve/main/Dolphin-X1-8B-Q4_K_M.gguf',
     // Add more mirrors as needed
   };
 
-  static MODEL_SIZE = 8.54 * 1024 * 1024 * 1024; // 8.54 GB in bytes
+  static MODEL_SIZE = 4.92 * 1024 * 1024 * 1024; // 4.92 GB in bytes
 
   async checkStorageSpace() {
     try {
@@ -35,7 +35,7 @@ export class ModelDownloader {
 
   async downloadModel(progressCallback, useAlternative = false) {
     const modelUrl = useAlternative ? ModelDownloader.MODEL_URLS.mirror1 : ModelDownloader.MODEL_URLS.primary;
-    const modelPath = `${FileSystem.documentDirectory}dolphin-x1-8b-q8.gguf`;
+    const modelPath = `${FileSystem.documentDirectory}dolphin-x1-8b-q4.gguf`;
 
     try {
       // Check if file already exists
