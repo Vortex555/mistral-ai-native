@@ -23,6 +23,7 @@ yarn-error.log
 # macOS
 .DS_Store
 ai.xcworkspace
+ai.xcworkspace/
 
 # iOS
 ios/
