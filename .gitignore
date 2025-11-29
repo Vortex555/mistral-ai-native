@@ -22,7 +22,7 @@ yarn-error.log
 
 # macOS
 .DS_Store
-.ai
+ai.xcworkspace
 
 # iOS
 ios/
