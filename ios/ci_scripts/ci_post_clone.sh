@@ -2,7 +2,7 @@
 
 # Xcode Cloud Post-Clone Script
 # This script runs after Xcode Cloud clones your repository
-# It installs CocoaPods dependencies before building
+# It installs Node.js and CocoaPods dependencies before building
 
 set -e
 
@@ -15,6 +15,29 @@ CI_PRIMARY_REPOSITORY_PATH="${CI_PRIMARY_REPOSITORY_PATH:-$CI_WORKSPACE}"
 
 echo "Working directory: $PWD"
 echo "Repository path: $CI_PRIMARY_REPOSITORY_PATH"
+
+# Install Node.js using Homebrew (if not present)
+echo "📦 Checking Node.js installation..."
+if ! command -v node > /dev/null 2>&1; then
+    echo "⚠️  Node.js not found, installing via Homebrew..."
+    
+    # Install Homebrew if not present
+    if ! command -v brew > /dev/null 2>&1; then
+        echo "Installing Homebrew..."
+        NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+    fi
+    
+    # Install Node.js
+    echo "Installing Node.js..."
+    brew install node
+else
+    echo "✅ Node.js already installed: $(node --version)"
+fi
+
+# Ensure node is in PATH
+export PATH="/opt/homebrew/bin:$PATH"
 
 # Navigate to iOS directory
 if [ -d "$CI_PRIMARY_REPOSITORY_PATH/ios" ]; then
@@ -43,5 +66,5 @@ fi
 echo "Running pod install..."
 pod install
 
-echo "✅ CocoaPods installation complete!"
+echo "✅ Dependencies installation complete!"
 echo "========================================"
