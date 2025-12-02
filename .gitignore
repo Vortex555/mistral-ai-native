@@ -28,9 +28,11 @@ ai.xcworkspace/
 *.xcsettings
 
 # iOS
-ios/
+# Note: ios/ folder is committed for Xcode Cloud builds
+# Only ignore build artifacts and user-specific files
 ios/Pods/
 ios/build/
+ios/DerivedData/
 *.pbxuser
 !default.pbxuser
 *.mode1v3
@@ -39,14 +41,14 @@ ios/build/
 !default.mode2v3
 *.perspectivev3
 !default.perspectivev3
-xcuserdata
+xcuserdata/
 *.xccheckout
 *.moved-aside
-DerivedData
 *.hmap
-*.ipa
 *.xcuserstate
 ios/.xcode.env.local
+ios/**/*.xcuserstate
+ios/**/xcuserdata/
 
 # Android
 android/
